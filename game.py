@@ -13,12 +13,14 @@ class Game:
 		self.relief= Relief()
 		self.figure= None
 
+		self.relief.extend([(0,0), (0,3)])
+		
 		self.root.after_idle(self.tick)
 		self.root.bind('<KeyPress>', self.press_key)
 		self.root.mainloop()
 		
 	def tick(self):
-		self.root.after(200, self.tick)
+		self.root.after(300, self.tick)
 		if not self.figure:
 			self.figure= Figure()
 			if self.relief.have_collision(self.figure.get_all()):
@@ -31,18 +33,40 @@ class Game:
 			if self.relief.overload():
 				print 'You Fail'
 				self.root.quit()
-			
-			
-		self.vis.reset()
-		self.vis.draw(self.relief.get_all(), 'powder blue')
-		if self.figure:
-			self.vis.draw(self.figure.get_all(), 'gray')
 		
+		self.redraw()	
+			
+		
+	
+	def redraw(self):
+		self.vis.reset()
+		self.vis.draw(self.relief.get_all(), 'red')
+		if self.figure:
+			self.vis.draw(self.figure.get_all(), 'green')
 		
 	def press_key(self, event):
-		print 'pressed key'
-	
-	
+		inp= event.char.upper()
+		
+		if inp == 'D': 
+			self.figure.right_move()
+			if self.relief.have_collision(self.figure.get_all()):
+				self.figure.rollback()
+			else:
+				self.redraw()
+			
+		elif inp == 'A': 
+			self.figure.left_move()
+			if self.relief.have_collision(self.figure.get_all()):
+				self.figure.rollback()
+			else:
+				self.redraw()
+				
+		elif inp == 'S': 
+			self.figure.down_move()
+			if self.relief.have_collision(self.figure.get_all()):
+				self.figure.rollback()
+			else:
+				self.redraw()
 	
 	def try_stand_figure(self):
 		if self.relief.have_collision(self.figure.get_all()):
