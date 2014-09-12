@@ -12,6 +12,7 @@ class Game:
 		self.vis= Visual(self.root)
 		self.relief= Relief()
 		self.figure= None
+		self.stand_latter= False
 		
 		self.root.after_idle(self.tick)
 		self.root.bind('<KeyPress>', self.press_key)
@@ -24,7 +25,7 @@ class Game:
 			if self.relief.have_collision(self.figure.get_all()):
 				print 'generate collision with relief'
 				self.root.quit()
-			
+		
 		self.figure.down_move()
 		if self.try_stand_figure():
 			self.figure= None
@@ -46,6 +47,7 @@ class Game:
 			self.figure.rollback()
 		else:
 			self.redraw()
+			self.stand_latter= True
 		
 	def press_key(self, event):
 		if not self.figure:
@@ -70,11 +72,16 @@ class Game:
 			self.redraw()
 	
 	def try_stand_figure(self):
+		result= False
 		if self.relief.have_collision(self.figure.get_all()):
 			self.figure.rollback()
-			self.relief.extend(self.figure.get_all())
-			self.relief.remove_filled_lines()
-			return True
-		return False
+			if self.stand_latter:
+				pass
+			else:
+				self.relief.extend(self.figure.get_all())
+				self.relief.remove_filled_lines()
+				result= True
+		self.stand_latter= False
+		return result
 		
 Game()
