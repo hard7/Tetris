@@ -34,12 +34,13 @@ class Relief:
 			if not self.check_empty(point):
 				return True
 		return False
-		
+	
 	def remove_filled_lines(self):
-		for line in self.lines:
-			if len(line) == self.line_capacity:
-				self.lines.remove(line)
+		capacity= self.line_capacity
+		self.lines= [line for line in self.lines if len(line) != capacity]
+		
 		self.fill_empty_lines()
+		
 	
 	def get_all(self):
 		res= []

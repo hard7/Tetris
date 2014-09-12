@@ -1,22 +1,74 @@
 #using python2
 
 from copy import deepcopy
+from random import choice
+import re
+
+FIGURES= (\
+'''
+|.#.|.#.|...|.#.|
+|###|.##|###|##.|
+|...|.#.|.#.|.#.|
+'''
+, \
+'''
+|.##|...|.#.|#..|
+|.#.|###|.#.|###|
+|.#.|..#|##.|...|
+'''
+, \
+'''
+|##.|..#|.#.|...|
+|.#.|###|.#.|###|
+|.#.|...|.##|#..|
+'''
+, \
+'''
+|##|
+|##|
+'''
+, \
+'''
+|##.|.#.|
+|.##|##.|
+|...|#..|
+'''
+, \
+'''
+|.##|#..|
+|##.|##.|
+|...|.#.|
+'''
+, \
+'''
+|....|.#..|
+|####|.#..|
+|....|.#..|
+|....|.#..|
+'''
+)
 
 class State:
-	def __init__(self, side):
-		self.global_marker= [3, 21]
-		self.side= side
+	def __init__(self, point, variant):
+		self.global_marker= list(point)
+		self.variant= variant
 		
-		self.local_map= [[True] * self.side] * self.side
-
 class Figure:
 	def __init__(self):
-		self.reset()
-		
-		
-	def reset(self):
-		self.side= 3
-		self.cur_state= State(self.side)
+		self.figure_variants= []
+		raw_fig= choice(FIGURES)
+		#print raw_fig
+		variants= zip(*[filter(None, row.split('|')) 
+		for row in filter(None, raw_fig.split('\n'))])
+		for variant in variants:
+			figure_variant=[]
+			for y in range(len(variant)):
+				figure_variant.extend(
+				[(f.start(), y) for f in re.finditer('#', variant[y])])
+			self.figure_variants.append(tuple(figure_variant))
+		self.figure_variants= tuple(self.figure_variants)
+		self.variant_count= len(self.figure_variants)
+		self.cur_state= State((3, 21), 0)
 		self.prev_state= None
 	
 	def down_move(self):
@@ -31,16 +83,23 @@ class Figure:
 	def right_move(self):
 		self.prev_state= deepcopy(self.cur_state)
 		self.cur_state.global_marker[0] += 1
+	
+	def left_turn(self):
+		self.prev_state= deepcopy(self.cur_state)
+		idx= self.cur_state.variant - 1
+		self.cur_state.variant= idx % self.variant_count	#that's cool
+	
+	def right_turn(self):
+		self.prev_state= deepcopy(self.cur_state)
+		idx= self.cur_state.variant + 1
+		self.cur_state.variant= idx % self.variant_count
 		
 	def rollback(self):
 		 self.cur_state= deepcopy(self.prev_state)
 		 self.prev_state= None
 		 
 	def get_all(self):
-		res= []
-		for y in range(self.side):
-			for x in range(self.side):
-				if self.cur_state.local_map[y][x]:
-					gx, gy= self.cur_state.global_marker
-					res.append((gx+x, gy-y))
-		return res
+		gx, gy= self.cur_state.global_marker
+		return [(gx+x, gy-y) for x,y in self.figure_variants[self.cur_state.variant]]
+
+Figure()
